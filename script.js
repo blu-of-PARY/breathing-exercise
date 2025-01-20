@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let recordedChunks = [];
     let isRecording = false;
     let isPaused = false;
+    let isRecordingSupported = true;
 
     // 현재 상태를 저장할 변수들 추가
     let currentPhaseIndex = 0;
@@ -84,14 +85,34 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.video.srcObject = stream;
             elements.video.play().catch(e => console.log('비디오 재생 오류:', e));
             
-            // MediaRecorder 설정
+            // MediaRecorder 설정 - 다양한 코덱 시도
+            let options = [
+                'video/webm;codecs=vp9',
+                'video/webm;codecs=vp8',
+                'video/webm',
+                'video/mp4'
+            ];
+
+            let mediaRecorderOptions;
+            for (let option of options) {
+                try {
+                    if (MediaRecorder.isTypeSupported(option)) {
+                        mediaRecorderOptions = { mimeType: option };
+                        break;
+                    }
+                } catch (e) {
+                    console.log(`${option} is not supported`);
+                }
+            }
+
             try {
-                mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'video/webm;codecs=vp9'
-                });
+                mediaRecorder = new MediaRecorder(stream, mediaRecorderOptions);
+                console.log('Using codec:', mediaRecorderOptions?.mimeType || 'default');
             } catch (e) {
-                // fallback: 기본 형식 사용
-                mediaRecorder = new MediaRecorder(stream);
+                console.warn('MediaRecorder creation failed:', e);
+                // 녹화 기능을 비활성화하고 계속 진행
+                alert('이 기기에서는 녹화 기능이 지원되지 않습니다. 운동은 계속 진행됩니다.');
+                isRecordingSupported = false;
             }
 
             mediaRecorder.ondataavailable = (event) => {
@@ -181,9 +202,19 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.startBtn.style.display = 'none';
         elements.pauseBtn.style.display = 'block';
         elements.pauseBtn.textContent = '일시정지';
-        recordedChunks = [];
-        mediaRecorder.start();
-        isRecording = true;
+
+        // 녹화 가능한 경우에만 녹화 시작
+        if (isRecordingSupported && mediaRecorder) {
+            try {
+                recordedChunks = [];
+                mediaRecorder.start();
+                isRecording = true;
+            } catch (e) {
+                console.warn('Recording failed to start:', e);
+                isRecordingSupported = false;
+            }
+        }
+
         startBreathingCycle();
     }
 
@@ -221,9 +252,14 @@ document.addEventListener('DOMContentLoaded', function() {
             timer = null;
         }
         
-        if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-            isRecording = false;
+        // 녹화 중지 (가능한 경우에만)
+        if (isRecordingSupported && isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
+            try {
+                mediaRecorder.stop();
+                isRecording = false;
+            } catch (e) {
+                console.warn('Recording failed to stop:', e);
+            }
         }
 
         elements.startBtn.style.display = 'block';
