@@ -29,7 +29,28 @@ document.addEventListener('DOMContentLoaded', () => {
         countDisplay: document.getElementById('countNumber'),
         phaseName: document.querySelector('.phase-name'),
         progress: document.querySelector('.timer-progress'),
+        cycleCount: document.getElementById('cycleCount'),
+        currentCycleDisplay: document.getElementById('currentCycle'),
+        totalCyclesDisplay: document.getElementById('totalCycles')
     };
+
+    // 사이클 카운트 입력 이벤트 리스너 추가
+    elements.cycleCount.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        if (value > 50) {
+            e.target.value = 50;
+            totalCycles = 50;
+        } else if (value < 1) {
+            e.target.value = 1;
+            totalCycles = 1;
+        } else {
+            totalCycles = value;
+        }
+        elements.totalCyclesDisplay.textContent = totalCycles;
+    });
+
+    // max 속성 변경
+    elements.cycleCount.setAttribute('max', '50');
 
     const breathingPhases = [
         { name: '준비', text: '자세를 잡고 호흡을 준비하세요.', time: 3 },
@@ -52,10 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             elements.video.srcObject = stream;
 
-            // 비디오 재생
             await elements.video.play();
 
-            // MediaRecorder 설정
             const options = { mimeType: 'video/webm; codecs=vp8' };
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 console.warn(`MIME 타입 ${options.mimeType}이 지원되지 않습니다. 대체 타입 사용.`);
@@ -109,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.instruction.textContent = phase.text;
             elements.countDisplay.textContent = currentTimeLeft;
 
-            // 진행바 업데이트
             const totalTime = breathingPhases.reduce((sum, phase) => sum + phase.time, 0);
             const elapsedTime = breathingPhases
                 .slice(0, currentPhaseIndex)
@@ -124,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPhaseIndex++;
                 if (currentPhaseIndex >= breathingPhases.length) {
                     currentCycle++;
+                    elements.currentCycleDisplay.textContent = currentCycle;
                     if (currentCycle >= totalCycles) {
                         stopExercise();
                         return;
@@ -148,6 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isRunning = true;
         isPaused = false;
+        currentCycle = 0;
+        elements.currentCycleDisplay.textContent = '0';
         elements.startBtn.style.display = 'none';
         elements.pauseBtn.style.display = 'block';
         elements.stopBtn.style.display = 'block';
@@ -198,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.phaseName.textContent = '';
         elements.instruction.textContent = '운동을 시작하려면 "시작하기"를 누르세요.';
         currentCycle = 0;
+        elements.currentCycleDisplay.textContent = '0';
     }
 
     elements.readyBtn.addEventListener('click', initCamera);
