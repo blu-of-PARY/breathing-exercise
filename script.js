@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: '들이쉬기', text: '숨을 천천히 들이마셔 주세요.', time: 7 },
         { name: '참기', text: '숨을 잠시 멈추세요.', time: 5 },
         { name: '내쉬기', text: '숨을 천천히 내쉬어 주세요.', time: 7 },
+        { name: '참기', text: '숨을 잠시 멈추세요.', time: 5 },
     ];
 
     async function initCamera() {
