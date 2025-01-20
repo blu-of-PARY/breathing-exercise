@@ -1,11 +1,11 @@
 {
-  "name": "호흡 훈련",
-  "short_name": "호흡 훈련",
-  "description": "호흡 운동을 도와주는 웹 애플리케이션",
+  "name": "복식호흡 훈련",
+  "short_name": "복식호흡 훈련",
+  "description": "복식호흡 운동을 도와주는 웹 애플리케이션",
   "start_url": "/breathing-exercise/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#efefef",
+  "theme_color": "#efefef",
   "icons": [
     {
       "src": "icons/icon-192x192.png",
