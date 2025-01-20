@@ -17,10 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let totalCycles = 10;
     let timer = null;
     let stream = null;
-    let mediaRecorder;
-    let recordedChunks = [];
-    let isRecording = false;
-    let isPaused = false;
     let isRecordingSupported = true;
 
     // 현재 상태를 저장할 변수들 추가
@@ -83,15 +79,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     ];
 
-    // 카메라 초기화
+    async function requestCameraPermission() {
+        try {
+            // 명시적으로 카메라 권한 요청
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: true,
+                audio: false 
+            });
+            
+            // 스트림 즉시 중지 (테스트용)
+            stream.getTracks().forEach(track => track.stop());
+            
+            return true;
+        } catch (err) {
+            console.error('Camera permission error:', err);
+            return false;
+        }
+    }
+
     async function initCamera() {
         try {
-            // 카메라 권한 요청 전에 상태 확인
-            if (navigator.permissions && navigator.permissions.query) {
-                const result = await navigator.permissions.query({ name: 'camera' });
-                console.log('Camera permission status:', result.state);
+            // 먼저 권한 확인
+            const hasPermission = await requestCameraPermission();
+            
+            if (!hasPermission) {
+                throw new Error('카메라 권한이 거부되었습니다.');
             }
 
+            // 실제 카메라 스트림 시작
             const constraints = {
                 video: {
                     facingMode: 'user',
@@ -103,21 +118,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             elements.video.srcObject = stream;
-            await elements.video.play();
+            
+            try {
+                await elements.video.play();
+            } catch (playError) {
+                console.error('Video play error:', playError);
+                alert('비디오 재생 중 오류가 발생했습니다.');
+                return;
+            }
 
             elements.readyBtn.style.display = 'none';
             elements.exerciseControls.style.display = 'flex';
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
 
         } catch (err) {
-            console.error('카메라 오류 상세:', err);
+            console.error('Camera initialization error:', err);
             
             if (err.name === 'NotAllowedError') {
-                alert('카메라 사용을 허용해주세요. 설정에서 카메라 권한을 변경할 수 있습니다.');
+                alert('카메라 접근이 거부되었습니다. 설정에서 카메라 권한을 허용해주세요.');
             } else if (err.name === 'NotFoundError') {
                 alert('카메라를 찾을 수 없습니다.');
+            } else if (err.name === 'NotReadableError') {
+                alert('카메라에 접근할 수 없습니다. 다른 앱이 카메라를 사용 중인지 확인해주세요.');
             } else {
-                alert('카메라를 시작할 수 없습니다. 오류: ' + err.message);
+                alert('카메라 초기화 중 오류가 발생했습니다: ' + err.message);
             }
         }
     }
@@ -174,40 +198,23 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.pauseBtn.style.display = 'block';
         elements.pauseBtn.textContent = '일시정지';
 
-        if (isMobile) {
-            // 모바일에서는 기본 카메라 앱 실행
-            try {
-                // 사용자에게 안내
-                alert('카메라 앱이 실행됩니다. 촬영을 시작하고 다시 이 화면으로 돌아와주세요.');
-                
-                // 카메라 앱 실행
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: 'user' }, 
-                        audio: false 
-                    }).then(function(stream) {
-                        const track = stream.getVideoTracks()[0];
-                        const imageCapture = new ImageCapture(track);
-                        imageCapture.takePhoto().then(function() {
-                            // 카메라 앱이 실행됨
-                        }).catch(function(error) {
-                            console.log('카메라 앱 실행 오류:', error);
-                        });
-                    });
-                }
-            } catch (e) {
-                console.warn('카메라 앱 실행 실패:', e);
+        // 카메라 앱 실행
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*';
+        input.capture = 'user'; // 전면 카메라 강제
+        
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                console.log('Video recorded:', file);
+                // 녹화가 완료되면 운동 시작
+                startBreathingCycle();
             }
-        } else {
-            // 데스크톱에서는 기존 방식대로 녹화
-            if (mediaRecorder) {
-                recordedChunks = [];
-                mediaRecorder.start();
-                isRecording = true;
-            }
-        }
-
-        startBreathingCycle();
+        };
+        
+        // 카메라 앱 실행
+        input.click();
     }
 
     // 일시 정지
@@ -243,24 +250,10 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(timer);
             timer = null;
         }
-        
-        // 녹화 중지 (가능한 경우에만)
-        if (isRecordingSupported && isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
-            try {
-                mediaRecorder.stop();
-                isRecording = false;
-            } catch (e) {
-                console.warn('Recording failed to stop:', e);
-            }
-        }
 
         elements.startBtn.style.display = 'block';
         elements.pauseBtn.style.display = 'none';
         elements.startBtn.textContent = '시작하기';
-        
-        // 상태 초기화
-        currentPhaseIndex = 0;
-        currentTimeLeft = 0;
         
         resetUI();
     }
@@ -313,5 +306,26 @@ document.addEventListener('DOMContentLoaded', function() {
             this.value = totalCycles;
         }
     });
+
+    // 페이지 로드 시 카메라 권한 상태 확인
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        console.log('Camera API is supported');
+        
+        if (navigator.permissions && navigator.permissions.query) {
+            try {
+                const result = await navigator.permissions.query({ name: 'camera' });
+                console.log('Camera permission status:', result.state);
+                
+                result.addEventListener('change', () => {
+                    console.log('Camera permission changed to:', result.state);
+                });
+            } catch (err) {
+                console.warn('Permission query error:', err);
+            }
+        }
+    } else {
+        console.error('Camera API is not supported');
+        alert('이 브라우저는 카메라 기능을 지원하지 않습니다.');
+    }
 });
 
