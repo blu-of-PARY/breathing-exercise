@@ -54,9 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const breathingPhases = [
         { name: '준비', text: '자세를 잡고 호흡을 준비하세요.', time: 3 },
-        { name: '들이쉬기', text: '숨을 천천히 들이마셔 주세요.', time: 5 },
+        { name: '들이쉬기', text: '숨을 천천히 들이마셔 주세요.', time: 7 },
         { name: '참기', text: '숨을 잠시 멈추세요.', time: 5 },
-        { name: '내쉬기', text: '숨을 천천히 내쉬어 주세요.', time: 5 },
+        { name: '내쉬기', text: '숨을 천천히 내쉬어 주세요.', time: 7 },
         { name: '참기', text: '숨을 잠시 멈추세요.', time: 5 },
     ];
 
