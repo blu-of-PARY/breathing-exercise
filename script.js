@@ -70,16 +70,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // 카메라 초기화
     async function initCamera() {
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ 
-                video: true, 
-                audio: false 
-            });
+            // 모바일 카메라 옵션 추가
+            const constraints = {
+                video: {
+                    facingMode: 'user', // 전면 카메라 사용
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            };
+
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
             elements.video.srcObject = stream;
+            elements.video.play().catch(e => console.log('비디오 재생 오류:', e));
             
             // MediaRecorder 설정
-            mediaRecorder = new MediaRecorder(stream, {
-                mimeType: 'video/webm;codecs=vp9'
-            });
+            try {
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9'
+                });
+            } catch (e) {
+                // fallback: 기본 형식 사용
+                mediaRecorder = new MediaRecorder(stream);
+            }
 
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data.size > 0) {
@@ -105,7 +118,15 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
         } catch (err) {
             console.error('카메라 오류:', err);
-            alert('카메라를 시작할 수 없습니다. 카메라 권한을 확인해주세요.');
+            alert('카메라를 시작할 수 없습니다. 설정에서 카메라 권한을 허용해주세요.');
+            
+            // 카메라 권한 상태 확인
+            if (navigator.permissions) {
+                navigator.permissions.query({ name: 'camera' })
+                    .then(permissionStatus => {
+                        console.log('카메라 권한 상태:', permissionStatus.state);
+                    });
+            }
         }
     }
 
