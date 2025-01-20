@@ -2,7 +2,7 @@
   "name": "호흡 훈련",
   "short_name": "호흡 훈련",
   "description": "호흡 운동을 도와주는 웹 애플리케이션",
-  "start_url": "/",
+  "start_url": "/breathing-exercise/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
