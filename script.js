@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // 전역 변수 설정
     let isRunning = false;
     let currentCycle = 0;
@@ -97,52 +97,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function initCamera() {
+    async function initCameraAndRecorder() {
         try {
-            // 먼저 권한 확인
-            const hasPermission = await requestCameraPermission();
-            
-            if (!hasPermission) {
-                throw new Error('카메라 권한이 거부되었습니다.');
-            }
-
-            // 실제 카메라 스트림 시작
-            const constraints = {
-                video: {
-                    facingMode: 'user',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
+            // 카메라 스트림 가져오기
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user' },
                 audio: false
-            };
-
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            });
             elements.video.srcObject = stream;
-            
-            try {
-                await elements.video.play();
-            } catch (playError) {
-                console.error('Video play error:', playError);
-                alert('비디오 재생 중 오류가 발생했습니다.');
-                return;
-            }
-
+            await elements.video.play();
+    
+            // MediaRecorder 초기화
+            const mediaRecorder = new MediaRecorder(stream);
+            let chunks = [];
+    
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    chunks.push(event.data);
+                }
+            };
+    
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                console.log('Recording complete:', url);
+    
+                // 다운로드 링크 추가
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = 'recorded-video.webm';
+                downloadLink.textContent = '녹화된 비디오 다운로드';
+                document.body.appendChild(downloadLink);
+            };
+    
+            elements.startBtn.addEventListener('click', () => {
+                chunks = []; // 기존 데이터 초기화
+                mediaRecorder.start();
+                console.log('Recording started');
+            });
+    
+            elements.stopBtn.addEventListener('click', () => {
+                mediaRecorder.stop();
+                console.log('Recording stopped');
+            });
+    
             elements.readyBtn.style.display = 'none';
             elements.exerciseControls.style.display = 'flex';
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
-
         } catch (err) {
             console.error('Camera initialization error:', err);
-            
-            if (err.name === 'NotAllowedError') {
-                alert('카메라 접근이 거부되었습니다. 설정에서 카메라 권한을 허용해주세요.');
-            } else if (err.name === 'NotFoundError') {
-                alert('카메라를 찾을 수 없습니다.');
-            } else if (err.name === 'NotReadableError') {
-                alert('카메라에 접근할 수 없습니다. 다른 앱이 카메라를 사용 중인지 확인해주세요.');
-            } else {
-                alert('카메라 초기화 중 오류가 발생했습니다: ' + err.message);
-            }
+            alert('카메라 초기화 중 오류가 발생했습니다: ' + err.message);
         }
     }
 
@@ -282,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 이벤트 리스너
-    elements.readyBtn.addEventListener('click', initCamera);
+    elements.readyBtn.addEventListener('click', initCameraAndRecorder);
     
     elements.startBtn.addEventListener('click', startExercise);
     
