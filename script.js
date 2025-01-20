@@ -86,89 +86,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // 카메라 초기화
     async function initCamera() {
         try {
-            if (isMobile) {
-                // 모바일인 경우 카메라 미리보기만 실행
-                const constraints = {
-                    video: {
-                        facingMode: 'user',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    },
-                    audio: false
-                };
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                elements.video.srcObject = stream;
-                elements.video.play().catch(e => console.log('비디오 재생 오류:', e));
-            } else {
-                // 데스크톱의 경우 기존 방식대로 진행
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: true, 
-                    audio: false 
-                });
-                elements.video.srcObject = stream;
-                // MediaRecorder 설정 - 다양한 코덱 시도
-                let options = [
-                    'video/webm;codecs=vp9',
-                    'video/webm;codecs=vp8',
-                    'video/webm',
-                    'video/mp4'
-                ];
-
-                let mediaRecorderOptions;
-                for (let option of options) {
-                    try {
-                        if (MediaRecorder.isTypeSupported(option)) {
-                            mediaRecorderOptions = { mimeType: option };
-                            break;
-                        }
-                    } catch (e) {
-                        console.log(`${option} is not supported`);
-                    }
-                }
-
-                try {
-                    mediaRecorder = new MediaRecorder(stream, mediaRecorderOptions);
-                    console.log('Using codec:', mediaRecorderOptions?.mimeType || 'default');
-                } catch (e) {
-                    console.warn('MediaRecorder creation failed:', e);
-                    // 녹화 기능을 비활성화하고 계속 진행
-                    alert('이 기기에서는 녹화 기능이 지원되지 않습니다. 운동은 계속 진행됩니다.');
-                    isRecordingSupported = false;
-                }
+            // 카메라 권한 요청 전에 상태 확인
+            if (navigator.permissions && navigator.permissions.query) {
+                const result = await navigator.permissions.query({ name: 'camera' });
+                console.log('Camera permission status:', result.state);
             }
 
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    recordedChunks.push(event.data);
-                }
+            const constraints = {
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
             };
 
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, {
-                    type: 'video/webm'
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `호흡훈련_${new Date().toISOString()}.webm`;
-                a.click();
-                URL.revokeObjectURL(url);
-                recordedChunks = [];
-            };
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            elements.video.srcObject = stream;
+            await elements.video.play();
 
             elements.readyBtn.style.display = 'none';
             elements.exerciseControls.style.display = 'flex';
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
+
         } catch (err) {
-            console.error('카메라 오류:', err);
-            alert('카메라를 시작할 수 없습니다. 설정에서 카메라 권한을 허용해주세요.');
+            console.error('카메라 오류 상세:', err);
             
-            // 카메라 권한 상태 확인
-            if (navigator.permissions) {
-                navigator.permissions.query({ name: 'camera' })
-                    .then(permissionStatus => {
-                        console.log('카메라 권한 상태:', permissionStatus.state);
-                    });
+            if (err.name === 'NotAllowedError') {
+                alert('카메라 사용을 허용해주세요. 설정에서 카메라 권한을 변경할 수 있습니다.');
+            } else if (err.name === 'NotFoundError') {
+                alert('카메라를 찾을 수 없습니다.');
+            } else {
+                alert('카메라를 시작할 수 없습니다. 오류: ' + err.message);
             }
         }
     }
