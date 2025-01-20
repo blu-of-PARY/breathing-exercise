@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPhaseIndex = 0;
     let currentTimeLeft = 0;
 
+    // 카메라 관련 변수 추가
+    let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     // DOM 요소들을 한 번에 정의
     const elements = {
         video: document.getElementById('webcam'),
@@ -71,48 +74,55 @@ document.addEventListener('DOMContentLoaded', function() {
     // 카메라 초기화
     async function initCamera() {
         try {
-            // 모바일 카메라 옵션 추가
-            const constraints = {
-                video: {
-                    facingMode: 'user', // 전면 카메라 사용
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
-                audio: false
-            };
+            if (isMobile) {
+                // 모바일인 경우 카메라 미리보기만 실행
+                const constraints = {
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                elements.video.srcObject = stream;
+                elements.video.play().catch(e => console.log('비디오 재생 오류:', e));
+            } else {
+                // 데스크톱의 경우 기존 방식대로 진행
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true, 
+                    audio: false 
+                });
+                elements.video.srcObject = stream;
+                // MediaRecorder 설정 - 다양한 코덱 시도
+                let options = [
+                    'video/webm;codecs=vp9',
+                    'video/webm;codecs=vp8',
+                    'video/webm',
+                    'video/mp4'
+                ];
 
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
-            elements.video.srcObject = stream;
-            elements.video.play().catch(e => console.log('비디오 재생 오류:', e));
-            
-            // MediaRecorder 설정 - 다양한 코덱 시도
-            let options = [
-                'video/webm;codecs=vp9',
-                'video/webm;codecs=vp8',
-                'video/webm',
-                'video/mp4'
-            ];
-
-            let mediaRecorderOptions;
-            for (let option of options) {
-                try {
-                    if (MediaRecorder.isTypeSupported(option)) {
-                        mediaRecorderOptions = { mimeType: option };
-                        break;
+                let mediaRecorderOptions;
+                for (let option of options) {
+                    try {
+                        if (MediaRecorder.isTypeSupported(option)) {
+                            mediaRecorderOptions = { mimeType: option };
+                            break;
+                        }
+                    } catch (e) {
+                        console.log(`${option} is not supported`);
                     }
-                } catch (e) {
-                    console.log(`${option} is not supported`);
                 }
-            }
 
-            try {
-                mediaRecorder = new MediaRecorder(stream, mediaRecorderOptions);
-                console.log('Using codec:', mediaRecorderOptions?.mimeType || 'default');
-            } catch (e) {
-                console.warn('MediaRecorder creation failed:', e);
-                // 녹화 기능을 비활성화하고 계속 진행
-                alert('이 기기에서는 녹화 기능이 지원되지 않습니다. 운동은 계속 진행됩니다.');
-                isRecordingSupported = false;
+                try {
+                    mediaRecorder = new MediaRecorder(stream, mediaRecorderOptions);
+                    console.log('Using codec:', mediaRecorderOptions?.mimeType || 'default');
+                } catch (e) {
+                    console.warn('MediaRecorder creation failed:', e);
+                    // 녹화 기능을 비활성화하고 계속 진행
+                    alert('이 기기에서는 녹화 기능이 지원되지 않습니다. 운동은 계속 진행됩니다.');
+                    isRecordingSupported = false;
+                }
             }
 
             mediaRecorder.ondataavailable = (event) => {
@@ -203,15 +213,36 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.pauseBtn.style.display = 'block';
         elements.pauseBtn.textContent = '일시정지';
 
-        // 녹화 가능한 경우에만 녹화 시작
-        if (isRecordingSupported && mediaRecorder) {
+        if (isMobile) {
+            // 모바일에서는 기본 카메라 앱 실행
             try {
+                // 사용자에게 안내
+                alert('카메라 앱이 실행됩니다. 촬영을 시작하고 다시 이 화면으로 돌아와주세요.');
+                
+                // 카메라 앱 실행
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'user' }, 
+                        audio: false 
+                    }).then(function(stream) {
+                        const track = stream.getVideoTracks()[0];
+                        const imageCapture = new ImageCapture(track);
+                        imageCapture.takePhoto().then(function() {
+                            // 카메라 앱이 실행됨
+                        }).catch(function(error) {
+                            console.log('카메라 앱 실행 오류:', error);
+                        });
+                    });
+                }
+            } catch (e) {
+                console.warn('카메라 앱 실행 실패:', e);
+            }
+        } else {
+            // 데스크톱에서는 기존 방식대로 녹화
+            if (mediaRecorder) {
                 recordedChunks = [];
                 mediaRecorder.start();
                 isRecording = true;
-            } catch (e) {
-                console.warn('Recording failed to start:', e);
-                isRecordingSupported = false;
             }
         }
 
