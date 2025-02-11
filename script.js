@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     async function initCamera() {
+        console.log('initCamera 함수 시작');  // 디버깅용
         try {
             const constraints = {
                 video: {
@@ -99,7 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 audio: true,
             };
 
+            console.log('getUserMedia 시도');  // 디버깅용
             stream = await navigator.mediaDevices.getUserMedia(constraints);
+            console.log('getUserMedia 성공');  // 디버깅용
             elements.video.srcObject = stream;
 
             await elements.video.play();
@@ -337,11 +340,17 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.currentCycleDisplay.textContent = '0';
     }
 
+    elements.readyBtn.addEventListener('click', initCamera);
+    elements.startBtn.addEventListener('click', startExercise);    
+    elements.pauseBtn.addEventListener('click', pauseExercise);
+    elements.stopBtn.addEventListener('click', stopExercise);
+
     // 페이지 로드 시 모달 표시
     elements.settingsModal.style.display = 'flex';
 
     // 모달의 시작하기 버튼 클릭 시
     elements.startWithSettings.addEventListener('click', () => {
+        console.log('준비 완료 버튼 클릭됨');  // 디버깅용
         elements.settingsModal.style.display = 'none';
         elements.readyBtn.style.display = 'block';
         elements.exerciseControls.style.display = 'block';
@@ -357,8 +366,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    elements.readyBtn.addEventListener('click', initCamera);
-    elements.startBtn.addEventListener('click', startExercise);    
-    elements.pauseBtn.addEventListener('click', pauseExercise);
-    elements.stopBtn.addEventListener('click', stopExercise);
 });
