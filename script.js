@@ -53,11 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.cycleCount.setAttribute('max', '50');
 
     const breathingPhases = [
-        { name: '준비', text: '자세를 잡고 호흡을 준비하세요.', time: 3 },
-        { name: '들이쉬기', text: '숨을 천천히 들이마셔 주세요.', time: 7 },
-        { name: '참기', text: '숨을 잠시 멈추세요.', time: 5 },
-        { name: '내쉬기', text: '숨을 천천히 내쉬어 주세요.', time: 7 },
-        { name: '참기', text: '숨을 잠시 멈추세요.', time: 5 },
+        { name: '준비', text: '자세를 잡고 호흡을 준비하세요.', time: 3, color: '0e4cb0' },
+        { name: '들이쉬기', text: '숨을 천천히 들이마셔 주세요.', time: 7, color: 'febe00' },
+        { name: '참기', text: '숨을 잠시 멈추세요.', time: 5, color: 'ee1b24' },
+        { name: '내쉬기', text: '숨을 천천히 내쉬어 주세요.', time: 7, color: 'febe00' },
+        { name: '참기', text: '숨을 잠시 멈추세요.', time: 5, color: 'ee1b24' },
     ];
 
     async function initCamera() {
@@ -129,13 +129,29 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.instruction.textContent = phase.text;
             elements.countDisplay.textContent = currentTimeLeft;
 
+            // 현재 단계의 색상 적용
+            elements.phaseName.style.color = phase.color;
+            elements.countDisplay.style.color = phase.color;
+            elements.progress.style.backgroundColor = phase.color;
+    
+            elements.progress.style.width = `${((breathingPhases
+                .slice(0, currentPhaseIndex)
+                .reduce((sum, phase) => sum + phase.time, 0) +
+                (breathingPhases[currentPhaseIndex].time - currentTimeLeft)) / breathingPhases.reduce((sum, phase) => sum + phase.time, 0)) * 100}%`;
+
             const totalTime = breathingPhases.reduce((sum, phase) => sum + phase.time, 0);
             const elapsedTime = breathingPhases
                 .slice(0, currentPhaseIndex)
                 .reduce((sum, phase) => sum + phase.time, 0) +
                 (breathingPhases[currentPhaseIndex].time - currentTimeLeft);
-            const progressWidth = (elapsedTime / totalTime) * 100;
-            elements.progress.style.width = `${progressWidth}%`;
+            const progressWidth = ((breathingPhases
+                .slice(0, currentPhaseIndex)
+                .reduce((sum, phase) => sum + phase.time, 0) +
+                (breathingPhases[currentPhaseIndex].time - currentTimeLeft)) / breathingPhases.reduce((sum, phase) => sum + phase.time, 0)) * 100;
+            elements.progress.style.width = `${((breathingPhases
+                .slice(0, currentPhaseIndex)
+                .reduce((sum, phase) => sum + phase.time, 0) +
+                (breathingPhases[currentPhaseIndex].time - currentTimeLeft)) / breathingPhases.reduce((sum, phase) => sum + phase.time, 0)) * 100}%`;
 
             currentTimeLeft--;
 
