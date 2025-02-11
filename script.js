@@ -337,11 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.currentCycleDisplay.textContent = '0';
     }
 
-    // 시작 버튼 클릭 시 모달 표시
-    elements.startBtn.addEventListener('click', () => {
-        elements.settingsModal.style.display = 'flex';
-    });
-
     // 모달의 시작하기 버튼 클릭 시
     elements.startWithSettings.addEventListener('click', () => {
         elements.settingsModal.style.display = 'none';
@@ -356,7 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elements.readyBtn.addEventListener('click', initCamera);
-    elements.startBtn.addEventListener('click', startExercise);
+    elements.startBtn.addEventListener('click', () => {
+        elements.settingsModal.style.display = 'flex';
+    });
     elements.pauseBtn.addEventListener('click', pauseExercise);
     elements.stopBtn.addEventListener('click', stopExercise);
 });
