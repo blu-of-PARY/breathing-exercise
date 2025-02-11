@@ -229,6 +229,81 @@ main {
     text-align: center;
 }
 
+/* 모달 스타일 */
+.settings-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #1d1d1d;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-content h2 {
+    color: #febe00;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.modal-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.setting-group label {
+    color: #efefef;
+    font-size: 16px;
+}
+
+.setting-input {
+    width: 100%;
+    padding: 12px;
+    background: #333;
+    border: none;
+    border-radius: 8px;
+    color: #efefef;
+    font-size: 16px;
+}
+
+.modal-btn {
+    width: 100%;
+    padding: 15px;
+    background: #febe00;
+    border: none;
+    border-radius: 25px;
+    color: #1d1d1d;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-btn:hover {
+    opacity: 0.9;
+}
+
 /* iOS 안전 영역 대응 */
 @supports (-webkit-touch-callout: none) {
     header {

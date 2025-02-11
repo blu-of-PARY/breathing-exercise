@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         currentCycleDisplay: document.getElementById('currentCycle'),
         totalCyclesDisplay: document.getElementById('totalCycles'),
         difficultySelect: document.getElementById('difficultySelect'),
+        settingsModal: document.getElementById('settingsModal'),
+        startWithSettings: document.getElementById('startWithSettings'),
     };
 
     // 사이클 카운트 입력 이벤트 리스너 추가
@@ -334,6 +336,24 @@ document.addEventListener('DOMContentLoaded', () => {
         currentCycle = 0;
         elements.currentCycleDisplay.textContent = '0';
     }
+
+    // 시작 버튼 클릭 시 모달 표시
+    elements.startBtn.addEventListener('click', () => {
+        elements.settingsModal.style.display = 'flex';
+    });
+
+    // 모달의 시작하기 버튼 클릭 시
+    elements.startWithSettings.addEventListener('click', () => {
+        elements.settingsModal.style.display = 'none';
+        startExercise();
+    });
+
+    // 모달 외부 클릭 시 닫기
+    elements.settingsModal.addEventListener('click', (e) => {
+        if (e.target === elements.settingsModal) {
+            elements.settingsModal.style.display = 'none';
+        }
+    });
 
     elements.readyBtn.addEventListener('click', initCamera);
     elements.startBtn.addEventListener('click', startExercise);
