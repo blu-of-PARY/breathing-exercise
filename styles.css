@@ -231,7 +231,6 @@ main {
 
 /* 모달 스타일 */
 .settings-modal {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -245,9 +244,7 @@ main {
 }
 
 .modal-content {
-    background-color: #1d1d1d;
     padding: 30px;
-    border-radius: 15px;
     width: 90%;
     max-width: 500px;
 }
