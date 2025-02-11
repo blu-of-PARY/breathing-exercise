@@ -134,24 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.countDisplay.style.color = phase.color;
             elements.progress.style.backgroundColor = phase.color;
     
-            elements.progress.style.width = `${((breathingPhases
-                .slice(0, currentPhaseIndex)
-                .reduce((sum, phase) => sum + phase.time, 0) +
-                (breathingPhases[currentPhaseIndex].time - currentTimeLeft)) / breathingPhases.reduce((sum, phase) => sum + phase.time, 0)) * 100}%`;
-
             const totalTime = breathingPhases.reduce((sum, phase) => sum + phase.time, 0);
             const elapsedTime = breathingPhases
                 .slice(0, currentPhaseIndex)
                 .reduce((sum, phase) => sum + phase.time, 0) +
                 (breathingPhases[currentPhaseIndex].time - currentTimeLeft);
-            const progressWidth = ((breathingPhases
-                .slice(0, currentPhaseIndex)
-                .reduce((sum, phase) => sum + phase.time, 0) +
-                (breathingPhases[currentPhaseIndex].time - currentTimeLeft)) / breathingPhases.reduce((sum, phase) => sum + phase.time, 0)) * 100;
-            elements.progress.style.width = `${((breathingPhases
-                .slice(0, currentPhaseIndex)
-                .reduce((sum, phase) => sum + phase.time, 0) +
-                (breathingPhases[currentPhaseIndex].time - currentTimeLeft)) / breathingPhases.reduce((sum, phase) => sum + phase.time, 0)) * 100}%`;
+            const progressWidth = (elapsedTime / totalTime) * 100;
+            elements.progress.style.width = `${progressWidth}%`;
 
             currentTimeLeft--;
 
@@ -234,7 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.stopBtn.style.display = 'none';
         elements.countDisplay.textContent = '0';
         elements.phaseName.textContent = '';
-        elements.instruction.textContent = '운동을 시작하려면 "시작하기"를 누르세요.';
+        elements.instruction.textContent = '호흡을 시작하려면 "시작하기"를 누르세요.';
+        elements.countDisplay.style.color = '#febe00';  // 기본 색상으로 리셋
+        elements.phaseName.style.color = '#febe00';     // 기본 색상으로 리셋
+        elements.progress.style.backgroundColor = '#febe00'; // 기본 색상으로 리셋
         currentCycle = 0;
         elements.currentCycleDisplay.textContent = '0';
     }
