@@ -353,16 +353,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('준비 완료 버튼 클릭됨');  // 디버깅용
         elements.settingsModal.style.display = 'none';
         elements.readyBtn.style.display = 'block';
-        elements.exerciseControls.style.display = 'block';
     });
-ㅇ
+
     // 모달 외부 클릭 시 닫기
     elements.settingsModal.addEventListener('click', (e) => {
         if (e.target === elements.settingsModal) {
             elements.settingsModal.style.display = 'none';
             elements.readyBtn.style.display = 'block';
-            elements.exerciseControls.style.display = 'block';
-
         }
     });
 
