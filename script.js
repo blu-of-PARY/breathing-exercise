@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const phase = breathingPhases[currentPhaseIndex];
             elements.phaseName.textContent = phase.name;
             elements.instruction.textContent = phase.text;
-            elements.countDisplay.textContent = currentTimeLeft;
+            elements.countDisplay.textContent = currentTimeLeft > 0 ? currentTimeLeft : '';
 
             // 현재 단계의 색상 적용
             elements.phaseName.style.color = phase.color;
