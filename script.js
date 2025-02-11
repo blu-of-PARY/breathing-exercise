@@ -38,6 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
         startWithSettings: document.getElementById('startWithSettings'),
     };
 
+    elements.readyBtn.style.display = 'block';  // '준비 완료' 버튼 표시
+    elements.startBtn.style.display = 'none';   // '시작하기' 버튼 숨김
+    elements.stopBtn.style.display = 'none';    // '정지' 버튼 숨김
+
     // 사이클 카운트 입력 이벤트 리스너 추가
     elements.cycleCount.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
@@ -134,8 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.removeChild(a);
             };
 
-            elements.readyBtn.style.display = 'none';
-            elements.exerciseControls.style.display = 'flex';
+            // 버튼 상태 변경
+            elements.readyBtn.style.display = 'none';  // '준비 완료' 버튼 숨기기
+            elements.startBtn.style.display = 'block'; // '시작하기' 버튼 표시
+            elements.stopBtn.style.display = 'block';  // '정지' 버튼 표시
+
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
         } catch (err) {
             console.error('Camera initialization error:', err);
