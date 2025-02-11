@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
         progress: document.querySelector('.timer-progress'),
         cycleCount: document.getElementById('cycleCount'),
         currentCycleDisplay: document.getElementById('currentCycle'),
-        totalCyclesDisplay: document.getElementById('totalCycles')
+        totalCyclesDisplay: document.getElementById('totalCycles'),
+        difficultySelect: document.getElementById('difficultySelect'),
     };
 
     // 사이클 카운트 입력 이벤트 리스너 추가
@@ -53,7 +54,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // max 속성 변경
     elements.cycleCount.setAttribute('max', '50');
 
-    const breathingPhases = [
+    const difficultySettings = {
+        beginner: {
+            prepare: 3,
+            inhale: 5,
+            hold: 3,
+            exhale: 5,
+            holdAfterExhale: 3
+        },
+        intermediate: {
+            prepare: 3,
+            inhale: 7,
+            hold: 5,
+            exhale: 7,
+            holdAfterExhale: 5
+        },
+        advanced: {
+            prepare: 3,
+            inhale: [5, 7],  // 범위 지정
+            hold: [3, 5],
+            exhale: [5, 7],
+            holdAfterExhale: [3, 5]
+        }
+    };
+
+    let breathingPhases = [
         { name: '준비', text: '자세를 잡고 호흡을 준비하세요.', time: 3, color: '#0e4cb0' },
         { name: '들이쉬기', text: '숨을 천천히 들이마셔 주세요.', time: 7, color: '#febe00' },
         { name: '참기', text: '숨을 잠시 멈추세요.', time: 5, color: '#ee1b24' },
@@ -133,6 +158,52 @@ document.addEventListener('DOMContentLoaded', () => {
         oscillator.stop(audioContext.currentTime + 0.1);
     }
 
+    function updateBreathingPhases() {
+        const difficulty = elements.difficultySelect.value;
+        const settings = difficultySettings[difficulty];
+        
+        function getRandomTime(range) {
+            if (Array.isArray(range)) {
+                const [min, max] = range;
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            return range;
+        }
+    
+        return [
+            { 
+                name: '준비', 
+                text: '자세를 잡고 호흡을 준비하세요.', 
+                time: settings.prepare, 
+                color: '#0e4cb0' 
+            },
+            { 
+                name: '들이쉬기', 
+                text: '숨을 천천히 들이마셔 주세요.', 
+                time: getRandomTime(settings.inhale), 
+                color: '#febe00' 
+            },
+            { 
+                name: '참기', 
+                text: '숨을 잠시 멈추세요.', 
+                time: getRandomTime(settings.hold), 
+                color: '#ee1b24' 
+            },
+            { 
+                name: '내쉬기', 
+                text: '숨을 천천히 내쉬어 주세요.', 
+                time: getRandomTime(settings.exhale), 
+                color: '#febe00' 
+            },
+            { 
+                name: '참기', 
+                text: '숨을 잠시 멈추세요.', 
+                time: getRandomTime(settings.holdAfterExhale), 
+                color: '#ee1b24' 
+            }
+        ];
+    }
+
     function startBreathingCycle(resumeFrom = null) {
         if (resumeFrom) {
             currentPhaseIndex = resumeFrom.phaseIndex;
@@ -170,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentTimeLeft--;
 
-            if (currentTimeLeft < 0) {
+            if (currentTimeLeft <= 0) {
                 currentPhaseIndex++;
                 if (currentPhaseIndex >= breathingPhases.length) {
                     currentCycle++;
@@ -202,6 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
+        breathingPhases = updateBreathingPhases();  // 난도에 따른 시간 설정 업데이트
+        
         isRunning = true;
         isPaused = false;
         currentCycle = 0;
