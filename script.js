@@ -7,6 +7,7 @@ if ('serviceWorker' in navigator) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    let audioContext = null;
     let isRunning = false;
     let isPaused = false;
     let currentCycle = 0;
@@ -112,6 +113,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function createBeepSound() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 800;
+        
+        gainNode.gain.value = 0.1;
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.1);
+    }
+
     function startBreathingCycle(resumeFrom = null) {
         if (resumeFrom) {
             currentPhaseIndex = resumeFrom.phaseIndex;
@@ -134,6 +155,11 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.countDisplay.style.color = phase.color;
             elements.progress.style.backgroundColor = phase.color;
     
+            // 마지막 3초 카운트다운 시 효과음 재생 (이 부분 추가)
+            if (currentTimeLeft <= 3 && currentTimeLeft > 0) {
+                createBeepSound();
+            }
+
             const totalTime = breathingPhases.reduce((sum, phase) => sum + phase.time, 0);
             const elapsedTime = breathingPhases
                 .slice(0, currentPhaseIndex)
@@ -169,6 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!stream) {
             alert('카메라가 활성화되지 않았습니다. 먼저 "준비 완료"를 누르세요.');
             return;
+        }
+
+        // AudioContext 초기화 (이 부분 추가)
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
         isRunning = true;
