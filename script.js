@@ -337,23 +337,25 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.currentCycleDisplay.textContent = '0';
     }
 
+    // 페이지 로드 시 모달 표시
+    elements.settingsModal.style.display = 'flex';
+
     // 모달의 시작하기 버튼 클릭 시
     elements.startWithSettings.addEventListener('click', () => {
         elements.settingsModal.style.display = 'none';
-        startExercise();
+        elements.readyBtn.style.display = 'block';
     });
-
+ㅇ
     // 모달 외부 클릭 시 닫기
     elements.settingsModal.addEventListener('click', (e) => {
         if (e.target === elements.settingsModal) {
             elements.settingsModal.style.display = 'none';
+            elements.readyBtn.style.display = 'block';  // 이 줄 추가
         }
     });
 
     elements.readyBtn.addEventListener('click', initCamera);
-    elements.startBtn.addEventListener('click', () => {
-        elements.settingsModal.style.display = 'flex';
-    });
+    elements.startBtn.addEventListener('click', startExercise);    
     elements.pauseBtn.addEventListener('click', pauseExercise);
     elements.stopBtn.addEventListener('click', stopExercise);
 });
