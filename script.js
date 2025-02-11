@@ -344,13 +344,16 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.startWithSettings.addEventListener('click', () => {
         elements.settingsModal.style.display = 'none';
         elements.readyBtn.style.display = 'block';
+        elements.exerciseControls.style.display = 'block';
     });
 ㅇ
     // 모달 외부 클릭 시 닫기
     elements.settingsModal.addEventListener('click', (e) => {
         if (e.target === elements.settingsModal) {
             elements.settingsModal.style.display = 'none';
-            elements.readyBtn.style.display = 'block';  // 이 줄 추가
+            elements.readyBtn.style.display = 'block';
+            elements.exerciseControls.style.display = 'block';
+
         }
     });
 
