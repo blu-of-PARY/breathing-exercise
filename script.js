@@ -134,6 +134,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 videoBitsPerSecond: 2500000,
             };
             
+            // 브라우저가 지원하는지 확인
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                console.warn(`⚠️ MIME 타입 ${options.mimeType}이 지원되지 않음. 기본값 사용.`);
+                options.mimeType = 'video/webm';
+            }
+
+            console.log("📽️ 캔버스 스트림 트랙 확인:", canvasStream.getTracks());
+            console.log("🎤 캔버스 스트림 오디오 트랙 개수:", canvasStream.getAudioTracks().length);
+            console.log("📽️ 캔버스 스트림 비디오 트랙 개수:", canvasStream.getVideoTracks().length);
             console.log('MediaRecorder 생성 시도:', options);
             mediaRecorder = new MediaRecorder(canvasStream, options);
     
@@ -159,9 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             mediaRecorder.ondataavailable = (event) => {
-                console.log('데이터 청크 수집됨:', event.data.size);
+                console.log("📀 데이터 청크 크기:", event.data.size);
                 if (event.data.size > 0) {
                     chunks.push(event.data);
+                } else {
+                    console.warn("⚠️ 녹화된 데이터가 비어 있음!");
                 }
             };
     
@@ -329,6 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chunks.length = 0;  // 청크 배열 초기화 추가
         mediaRecorder.start();
+        setTimeout(() => {
+            console.log("🎥 MediaRecorder 상태 확인:", mediaRecorder.state);
+        }, 1000);
         console.log('녹화 시작됨');
 
         startBreathingCycle();
