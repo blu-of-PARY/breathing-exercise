@@ -203,7 +203,7 @@ main {
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background: #1d1d1d(29, 29, 29, 0.8);
+    background: rgba(29, 29, 29, 0.8);
     border-radius: 15px;
 }
 
@@ -314,7 +314,7 @@ main {
 .ui-container {
     position: relative;
     z-index: 1;
-    background: #1d1d1d(0, 0, 0, 0.5);  /* 반투명 검은 배경 */
+    background: rgba(0, 0, 0, 0.5);
     padding: 20px;
     width: 100%;
     color: #efefef;
