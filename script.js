@@ -131,6 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.video.srcObject = stream;
             await elements.video.play();
 
+            // 동적으로 캔버스 크기 설정
+            elements.canvas.width = elements.video.videoWidth;
+            elements.canvas.height = elements.video.videoHeight;
+
             // 웹캠 영상이 재생된 후, 캔버스 스트림 생성 (30fps로 캡처)
             const canvasStream = elements.canvas.captureStream(30);
 
