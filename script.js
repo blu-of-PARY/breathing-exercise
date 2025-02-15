@@ -109,9 +109,17 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('getUserMedia 성공');  // 디버깅용
             elements.video.srcObject = stream;
 
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            elements.video.srcObject = stream;    
+
             await elements.video.play();
 
-            const options = { mimeType: 'video/webm; codecs=vp8' };
+            const options = { 
+                mimeType: 'video/webm; codecs=vp8',
+                videoBitsPerSecond: 2500000,  // 추가
+                timeslice: 1000  // 추가
+            };
+
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 console.warn(`MIME 타입 ${options.mimeType}이 지원되지 않습니다. 대체 타입 사용.`);
                 options.mimeType = 'video/mp4';
@@ -119,23 +127,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
             mediaRecorder = new MediaRecorder(stream, options);
             mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
+                if (event.data && event.data.size > 0) {  // 수정
                     chunks.push(event.data);
+                    console.log('데이터 청크 추가됨:', event.data.size); // 디버깅용
                 }
             };
 
             mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: options.mimeType });
-                const fileName = `recorded-video-${new Date()
-                    .toISOString()
-                    .replace(/[:.]/g, '-')}.webm`;
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = URL.createObjectURL(blob);
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                // 약간의 지연을 주어 마지막 청크까지 모두 수집
+                setTimeout(() => {
+                    if (chunks.length > 0) {
+                        const blob = new Blob(chunks, { type: options.mimeType });
+                        const fileName = `recorded-video-${new Date()
+                            .toISOString()
+                            .replace(/[:.]/g, '-')}.webm`;
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = URL.createObjectURL(blob);
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(a.href);  // 추가
+                    }
+                }, 500);
             };
 
             // 버튼 상태 변경
@@ -295,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pauseBtn.style.display = 'block';
         elements.stopBtn.style.display = 'block';
 
+        chunks.length = 0;  // 청크 배열 초기화 추가
         mediaRecorder.start();
         console.log('녹화 시작됨');
 
