@@ -39,21 +39,41 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas: document.getElementById('recordingCanvas')
     };
 
+    function setCanvasSize() {
+        const isMobile = window.innerWidth <= 767;
+        if (isMobile) {
+            elements.canvas.width = 720;   // 9:16 비율
+            elements.canvas.height = 1280;
+        } else {
+            elements.canvas.width = 1280;  // 16:9 비율
+            elements.canvas.height = 720;
+        }
+        console.log("Canvas size set to:", elements.canvas.width, "x", elements.canvas.height);
+    }
+
     // 캔버스 초기화
     const ctx = elements.canvas.getContext('2d');
 
     function drawCompositeFrame() {
-        console.log("drawCompositeFrame 실행");  // 함수 실행 확인용 로그
-        ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+        if (!isRunning) return;
+            
+        // 비디오 프레임 그리기
         ctx.drawImage(elements.video, 0, 0, elements.canvas.width, elements.canvas.height);
-
-        // 오버레이 텍스트 추가
-        ctx.font = 'italic 48px "Pretendard"';
-        ctx.fillStyle = '#febe00';
-        // 예: phaseName과 countDisplay에 현재 단계와 남은 시간이 들어있음
-        ctx.fillText("단계: " + elements.phaseName.textContent, 20, 60);
-        ctx.fillText("남은 시간: " + elements.countDisplay.textContent, 20, 120);
-
+    
+        const phase = breathingPhases[currentPhaseIndex];
+        
+        // 배경 박스
+        ctx.fillStyle = '#1d1d1d';
+        ctx.fillRect(10, 10, 300, 80);
+        
+        // 텍스트 정보
+        ctx.fillStyle = phase?.color || '#efefef';
+        ctx.font = 'bold 24px Pretendard';
+        ctx.fillText(`${phase?.name || ''} (${currentTimeLeft}초)`, 20, 45);
+        ctx.fillStyle = '#efefef';
+        ctx.font = '18px Pretendard';
+        ctx.fillText(`사이클: ${currentCycle}/${totalCycles}`, 20, 75);
+    
         requestAnimationFrame(drawCompositeFrame);
     }
 
@@ -114,20 +134,19 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initCamera() {
         try {
             console.log('initCamera 함수 시작');  // 디버깅용
-    
+            const constraints = {
+                video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: true,
+            };
+
             console.log('getUserMedia 시도');  // 디버깅용
             stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
             console.log('getUserMedia 성공');  // 디버깅용
             elements.video.srcObject = stream;
+            elements.video.addEventListener('loadedmetadata', () => {
+                setCanvasSize();
+            });
             await elements.video.play();
-    
-            // 비디오 메타데이터가 로드되면 캔버스 크기를 설정
-            function setCanvasSize() {
-                elements.canvas.width = elements.video.videoWidth;
-                elements.canvas.height = elements.video.videoHeight;
-                console.log("캔버스 크기 재설정:", elements.canvas.width, elements.canvas.height);
-            }
-            elements.video.addEventListener('loadedmetadata', setCanvasSize);
     
             // 모바일의 경우 회전할 때 캔버스 크기를 재설정
             window.addEventListener('orientationchange', () => {
@@ -327,6 +346,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // 시작 시점에 캔버스 크기를 한 번 더 재설정
         setCanvasSize();
 
+        // 화면 크기 변경 시 캔버스 크기 업데이트
+        window.addEventListener('resize', setCanvasSize);
+
         // AudioContext 초기화 (이 부분 추가)
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -348,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 캔버스 업데이트 루프 시작
         requestAnimationFrame(drawCompositeFrame);
-
         startBreathingCycle();
     }
 
