@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.drawImage(elements.video, 0, 0, elements.canvas.width, elements.canvas.height);
 
         // 오버레이 텍스트 추가
-        ctx.font = '48px Arial';
-        ctx.fillStyle = 'yellow';
+        ctx.font = 'italic 48px "Pretendard"';
+        ctx.fillStyle = '#febe00';
         // 예: phaseName과 countDisplay에 현재 단계와 남은 시간이 들어있음
         ctx.fillText("단계: " + elements.phaseName.textContent, 20, 60);
         ctx.fillText("남은 시간: " + elements.countDisplay.textContent, 20, 120);
