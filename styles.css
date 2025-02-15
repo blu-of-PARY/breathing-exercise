@@ -60,15 +60,19 @@ main {
 
 /* 카메라 컨테이너 */
 .camera-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
+    position: relative;
 }
 
 #webcam {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#recordingCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;

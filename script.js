@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let timer = null;
     let stream = null;
     let mediaRecorder = null;
+    let animationFrameId = null;
     const chunks = [];
     let currentPhaseIndex = 0;
     let currentTimeLeft = 0;
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         difficultySelect: document.getElementById('difficultySelect'),
         settingsModal: document.getElementById('settingsModal'),
         startWithSettings: document.getElementById('startWithSettings'),
+        canvas: document.getElementById('recordingCanvas'),
     };
 
     elements.readyBtn.style.display = 'block';  // '준비 완료' 버튼 표시
@@ -108,39 +110,46 @@ document.addEventListener('DOMContentLoaded', () => {
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             console.log('getUserMedia 성공');  // 디버깅용
             elements.video.srcObject = stream;
-
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
-            elements.video.srcObject = stream;    
-
             await elements.video.play();
+
+            // Canvas 설정
+            const canvas = elements.canvas;
+            const ctx = canvas.getContext('2d');
+            canvas.width = 1280;
+            canvas.height = 720;
+
+            // 캔버스 스트림 생성
+            const canvasStream = canvas.captureStream(30); // 30fps
+
+            // 오디오 트랙 추가
+            stream.getAudioTracks().forEach(track => {
+                canvasStream.addTrack(track);
+            });
 
             const options = { 
                 mimeType: 'video/webm; codecs=vp8',
-                videoBitsPerSecond: 2500000,  // 추가
-                timeslice: 1000  // 추가
+                videoBitsPerSecond: 2500000,
             };
 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 console.warn(`MIME 타입 ${options.mimeType}이 지원되지 않습니다. 대체 타입 사용.`);
                 options.mimeType = 'video/mp4';
             }
-
-            mediaRecorder = new MediaRecorder(stream, options);
+    
+            // MediaRecorder 초기화 (Canvas 스트림 사용)
+            mediaRecorder = new MediaRecorder(canvasStream, options);
             mediaRecorder.ondataavailable = (event) => {
-                if (event.data && event.data.size > 0) {  // 수정
+                if (event.data && event.data.size > 0) {
                     chunks.push(event.data);
-                    console.log('데이터 청크 추가됨:', event.data.size); // 디버깅용
+                    console.log('데이터 청크 추가됨:', event.data.size);
                 }
             };
-
+    
             mediaRecorder.onstop = () => {
-                // 약간의 지연을 주어 마지막 청크까지 모두 수집
                 setTimeout(() => {
                     if (chunks.length > 0) {
                         const blob = new Blob(chunks, { type: options.mimeType });
-                        const fileName = `recorded-video-${new Date()
-                            .toISOString()
-                            .replace(/[:.]/g, '-')}.webm`;
+                        const fileName = `recorded-video-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
                         const a = document.createElement('a');
                         a.style.display = 'none';
                         a.href = URL.createObjectURL(blob);
@@ -148,16 +157,44 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
-                        URL.revokeObjectURL(a.href);  // 추가
+                        URL.revokeObjectURL(a.href);
                     }
                 }, 500);
             };
 
-            // 버튼 상태 변경
-            elements.readyBtn.style.display = 'none';  // '준비 완료' 버튼 숨기기
-            elements.startBtn.style.display = 'block'; // '시작하기' 버튼 표시
-            elements.stopBtn.style.display = 'block';  // '정지' 버튼 표시
+            // 프레임 업데이트 함수
+            function drawFrame() {
+                if (!isRunning) {
+                    cancelAnimationFrame(animationFrameId);
+                    return;
+                }
+            
+                // 비디오 프레임 그리기
+                ctx.drawImage(elements.video, 0, 0, canvas.width, canvas.height);
+            
+                // 현재 단계와 타이머 정보 그리기
+                const phase = breathingPhases[currentPhaseIndex];
+                
+                // 배경 박스
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(10, 10, 300, 80);
+                
+                // 텍스트 정보
+                ctx.fillStyle = phase?.color || '#ffffff';
+                ctx.font = 'bold 24px Pretendard';
+                ctx.fillText(`${phase?.name || ''} (${currentTimeLeft}초)`, 20, 45);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '18px Pretendard';
+                ctx.fillText(`사이클: ${currentCycle}/${totalCycles}`, 20, 75);
+            
+                animationFrameId = requestAnimationFrame(drawFrame);
+            }
 
+            // 프레임 업데이트 시작
+            drawFrame();
+
+            elements.readyBtn.style.display = 'none';
+            elements.exerciseControls.style.display = 'flex';
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
         } catch (err) {
             console.error('Camera initialization error:', err);
@@ -340,11 +377,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopExercise() {
         isRunning = false;
         clearInterval(timer);
-
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+    
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
         }
-
+    
         resetUI();
         console.log('녹화 중지됨');
     }
