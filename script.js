@@ -126,11 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // 캔버스 스트림 생성
             const canvasStream = canvas.captureStream(30); // 30fps
     
-            // 오디오 트랙 추가
-            stream.getAudioTracks().forEach(track => {
-                canvasStream.addTrack(track);
-                console.log('오디오 트랙 추가됨:', track);
-            });
+            // ✅ 오디오 트랙 추가 (없을 경우 경고 출력)
+            const audioTracks = stream.getAudioTracks();
+            if (audioTracks.length > 0) {
+                canvasStream.addTrack(audioTracks[0]); // 첫 번째 오디오 트랙 추가
+                console.log("🎤 오디오 트랙 추가됨:", audioTracks[0]);
+            } else {
+                console.warn("⚠️ 오디오 트랙 없음! 오디오 없이 녹화됩니다.");
+            }
     
             const options = { 
                 mimeType: 'video/webm; codecs=vp9',
@@ -168,9 +171,10 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             mediaRecorder.ondataavailable = (event) => {
-                console.log("📀 데이터 청크 크기:", event.data.size);
-                if (event.data.size > 0) {
+                console.log("📀 데이터 수신됨, 크기:", event.data.size);
+                if (event.data && event.data.size > 0) {
                     chunks.push(event.data);
+                    console.log("✅ 데이터 저장 완료 (chunks 크기):", chunks.length);
                 } else {
                     console.warn("⚠️ 녹화된 데이터가 비어 있음!");
                 }
@@ -193,24 +197,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function createBeepSound() {
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
+    function drawCanvasFrame() {
+        if (!isRunning) return; // 녹화 중이 아닐 경우 실행 안 함
     
+        const ctx = elements.canvas.getContext('2d'); // 캔버스 컨텍스트 가져오기
+        ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height); // 캔버스 초기화
+        ctx.drawImage(elements.video, 0, 0, elements.canvas.width, elements.canvas.height); // 비디오 프레임 캡처
+    
+        animationFrameId = requestAnimationFrame(drawCanvasFrame); // ✅ ID 저장
+        requestAnimationFrame(drawCanvasFrame); // 다음 프레임 요청
+    }
+
+    function createBeepSound() {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)(); // ✅ 여기에서만 초기화
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+    
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+    
         oscillator.type = 'sine';
         oscillator.frequency.value = 800;
-        
+    
         gainNode.gain.value = 0.1;
-        
+    
         oscillator.start();
         oscillator.stop(audioContext.currentTime + 0.1);
+    
+        // ✅ AudioContext 종료 (메모리 절약)
+        setTimeout(() => audioContext.close(), 500);
     }
 
     function updateBreathingPhases() {
@@ -323,11 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // AudioContext 초기화 (이 부분 추가)
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
         breathingPhases = updateBreathingPhases();  // 난도에 따른 시간 설정 업데이트
         
         isRunning = true;
@@ -340,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chunks.length = 0;  // 청크 배열 초기화 추가
         mediaRecorder.start();
-        setInterval(drawFrame, 33); // 프레임 갱신을 강제로 실행 (30FPS)
+        requestAnimationFrame(drawCanvasFrame);  // ✅ 캔버스 프레임을 계속 갱신하도록 추가!
         console.log('녹화 시작됨');
 
         startBreathingCycle();
