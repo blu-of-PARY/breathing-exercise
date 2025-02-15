@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let timer = null;
     let stream = null;
     let mediaRecorder = null;
-    let animationFrameId = null;
     const chunks = [];
     let currentPhaseIndex = 0;
     let currentTimeLeft = 0;
@@ -37,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
         difficultySelect: document.getElementById('difficultySelect'),
         settingsModal: document.getElementById('settingsModal'),
         startWithSettings: document.getElementById('startWithSettings'),
-        canvas: document.getElementById('recordingCanvas'),
     };
 
     elements.readyBtn.style.display = 'block';  // '준비 완료' 버튼 표시
@@ -105,135 +103,86 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 audio: true,
             };
-    
+
             console.log('getUserMedia 시도');  // 디버깅용
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             console.log('getUserMedia 성공');  // 디버깅용
             elements.video.srcObject = stream;
+
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            elements.video.srcObject = stream;    
+
             await elements.video.play();
-    
-            console.log('비디오 및 오디오 트랙 확인:', stream.getTracks());
-    
-            // Canvas 설정
-            const canvas = elements.canvas;
-            const ctx = canvas.getContext('2d');
-            canvas.width = 1280;
-            canvas.height = 720;
-    
-            elements.video.width = 1280;
-            elements.video.height = 720;
 
-            // 캔버스 스트림 생성
-            const canvasStream = canvas.captureStream(30); // 30fps
-    
-            // ✅ 오디오 트랙 추가 (없을 경우 경고 출력)
-            const audioTrack = stream.getAudioTracks()[0]; // ✅ 첫 번째 오디오 트랙만 추가
-            if (audioTrack) {
-                canvasStream.addTrack(audioTrack);
-                console.log("🎤 오디오 트랙 추가됨:", audioTrack);
-            } else {
-                console.warn("⚠️ 오디오 트랙 없음! 오디오 없이 녹화됩니다.");
-            }
-    
             const options = { 
-                mimeType: 'video/webm; codecs=vp9',
-                videoBitsPerSecond: 2500000,
+                mimeType: 'video/webm; codecs=vp8',
+                videoBitsPerSecond: 2500000,  // 추가
+                timeslice: 1000  // 추가
             };
-            
-            // 브라우저가 지원하는지 확인
-            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                console.warn(`⚠️ MIME 타입 ${options.mimeType}이 지원되지 않음. 기본값 사용.`);
-                options.mimeType = 'video/webm';
-            }
-            
-            console.log("🎬 최종 MediaRecorder 설정:", options);
-            mediaRecorder = new MediaRecorder(canvasStream, options);
-    
-            // 녹화 이벤트 핸들러 추가 (중복 방지)
-            mediaRecorder.onstart = () => console.log('녹화 시작됨');
-            mediaRecorder.onstop = () => {
-                console.log('녹화 종료됨');
-            
-                if (chunks.length === 0) {
-                    console.warn('⚠️ 녹화된 데이터가 없습니다.');
-                    alert('⚠️ 녹화된 데이터가 없습니다. 카메라 또는 마이크 설정을 확인하세요.');
-                    return;
-                }
 
-                // ✅ 녹화 데이터 저장 후 chunks 초기화
-                setTimeout(() => {
-                    chunks.length = 0;
-                    console.log('📁 녹화 데이터 초기화 완료');
-                }, 500);
-            
-                const blob = new Blob(chunks, { type: options.mimeType });
-                const fileName = `recorded-video-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = URL.createObjectURL(blob);
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(a.href);
-                console.log('📁 파일 다운로드 실행됨');
-            };
-            
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                console.warn(`MIME 타입 ${options.mimeType}이 지원되지 않습니다. 대체 타입 사용.`);
+                options.mimeType = 'video/mp4';
+            }
+
+            mediaRecorder = new MediaRecorder(stream, options);
             mediaRecorder.ondataavailable = (event) => {
-                console.log("📀 데이터 수신됨, 크기:", event.data.size);
-                if (event.data && event.data.size > 0) {
+                if (event.data && event.data.size > 0) {  // 수정
                     chunks.push(event.data);
-                    console.log("✅ 데이터 저장 완료 (chunks 크기):", chunks.length);
-                } else {
-                    console.warn("⚠️ 녹화된 데이터가 비어 있음!");
+                    console.log('데이터 청크 추가됨:', event.data.size); // 디버깅용
                 }
             };
-    
-            console.log('MediaRecorder 생성 완료');
-    
-            elements.readyBtn.style.display = 'none';
-            elements.exerciseControls.style.display = 'flex';
-            elements.startBtn.style.display = 'block';
-            elements.pauseBtn.style.display = 'none';
-            elements.stopBtn.style.display = 'block';
+
+            mediaRecorder.onstop = () => {
+                // 약간의 지연을 주어 마지막 청크까지 모두 수집
+                setTimeout(() => {
+                    if (chunks.length > 0) {
+                        const blob = new Blob(chunks, { type: options.mimeType });
+                        const fileName = `recorded-video-${new Date()
+                            .toISOString()
+                            .replace(/[:.]/g, '-')}.webm`;
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = URL.createObjectURL(blob);
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(a.href);  // 추가
+                    }
+                }, 500);
+            };
+
+            // 버튼 상태 변경
+            elements.readyBtn.style.display = 'none';  // '준비 완료' 버튼 숨기기
+            elements.startBtn.style.display = 'block'; // '시작하기' 버튼 표시
+            elements.stopBtn.style.display = 'block';  // '정지' 버튼 표시
+
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
-    
-            console.log('Buttons visibility updated'); // 디버깅용 로그 추가
-            
         } catch (err) {
             console.error('Camera initialization error:', err);
             alert('카메라 초기화 중 오류가 발생했습니다: ' + err.message);
         }
     }
 
-    function drawCanvasFrame() {
-        if (!isRunning) return; // 녹화 중이 아닐 경우 실행 안 함
-    
-        const ctx = elements.canvas.getContext('2d'); // 캔버스 컨텍스트 가져오기
-        ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height); // 캔버스 초기화
-        ctx.drawImage(elements.video, 0, 0, elements.canvas.width, elements.canvas.height); // 비디오 프레임 캡처
-
-        animationFrameId = requestAnimationFrame(drawCanvasFrame);
-    }
-
     function createBeepSound() {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)(); // ✅ 여기에서만 초기화
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-    
+        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-    
+        
         oscillator.type = 'sine';
         oscillator.frequency.value = 800;
-    
+        
         gainNode.gain.value = 0.1;
-    
+        
         oscillator.start();
         oscillator.stop(audioContext.currentTime + 0.1);
-    
-        // ✅ AudioContext 종료 (메모리 절약)
-        setTimeout(() => audioContext.close(), 500);
     }
 
     function updateBreathingPhases() {
@@ -346,6 +295,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // AudioContext 초기화 (이 부분 추가)
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
         breathingPhases = updateBreathingPhases();  // 난도에 따른 시간 설정 업데이트
         
         isRunning = true;
@@ -358,7 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chunks.length = 0;  // 청크 배열 초기화 추가
         mediaRecorder.start();
-        requestAnimationFrame(drawCanvasFrame);  // ✅ 캔버스 프레임을 계속 갱신하도록 추가!
         console.log('녹화 시작됨');
 
         startBreathingCycle();
@@ -385,43 +338,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function stopExercise() {
-        console.log('🔴 운동 중지됨');
-        isRunning = false;  // ✅ 운동 상태 초기화
-        isPaused = false;   // ✅ 일시정지 상태도 초기화
+        isRunning = false;
         clearInterval(timer);
 
-        // ✅ 애니메이션 프레임 해제
-        if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
-            animationFrameId = null;
-        }
-    
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            console.log('녹화 중지 요청됨');
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
-        } else {
-            console.warn('MediaRecorder가 이미 중지된 상태이거나 녹화되지 않음.');
         }
-    
-        // onstop 이벤트가 실행되는지 확인하는 로그 추가
-        setTimeout(() => {
-            console.log('녹화 후 청크 개수:', chunks.length);
-            if (chunks.length > 0) {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                console.log('Blob 생성됨:', blob.size);
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `recorded-video-${Date.now()}.webm`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(a.href);
-                console.log('파일 다운로드 실행됨');
-            } else {
-                console.error('녹화된 데이터가 없음');
-            }
-        }, 1000);
-    
+
         resetUI();
         console.log('녹화 중지됨');
     }
