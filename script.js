@@ -120,6 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
             canvas.width = 1280;
             canvas.height = 720;
     
+            elements.video.width = 1280;
+            elements.video.height = 720;
+
             // 캔버스 스트림 생성
             const canvasStream = canvas.captureStream(30); // 30fps
     
@@ -130,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     
             const options = { 
-                mimeType: 'video/webm; codecs=vp8',
+                mimeType: 'video/webm; codecs=vp9',
                 videoBitsPerSecond: 2500000,
             };
             
@@ -139,11 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn(`⚠️ MIME 타입 ${options.mimeType}이 지원되지 않음. 기본값 사용.`);
                 options.mimeType = 'video/webm';
             }
-
-            console.log("📽️ 캔버스 스트림 트랙 확인:", canvasStream.getTracks());
-            console.log("🎤 캔버스 스트림 오디오 트랙 개수:", canvasStream.getAudioTracks().length);
-            console.log("📽️ 캔버스 스트림 비디오 트랙 개수:", canvasStream.getVideoTracks().length);
-            console.log('MediaRecorder 생성 시도:', options);
+            
+            console.log("🎬 최종 MediaRecorder 설정:", options);
             mediaRecorder = new MediaRecorder(canvasStream, options);
     
             // 녹화 이벤트 핸들러 추가 (중복 방지)
@@ -340,9 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chunks.length = 0;  // 청크 배열 초기화 추가
         mediaRecorder.start();
-        setTimeout(() => {
-            console.log("🎥 MediaRecorder 상태 확인:", mediaRecorder.state);
-        }, 1000);
+        setInterval(drawFrame, 33); // 프레임 갱신을 강제로 실행 (30FPS)
         console.log('녹화 시작됨');
 
         startBreathingCycle();
