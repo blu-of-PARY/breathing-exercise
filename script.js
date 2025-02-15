@@ -387,9 +387,29 @@ document.addEventListener('DOMContentLoaded', () => {
             cancelAnimationFrame(animationFrameId);
         }
     
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            console.log('녹화 중지 요청됨');
             mediaRecorder.stop();
+        } else {
+            console.warn('MediaRecorder가 이미 중지된 상태이거나 녹화되지 않음.');
         }
+    
+        setTimeout(() => {
+            console.log('녹화 후 청크 개수:', chunks.length);
+            if (chunks.length > 0) {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `recorded-video-${Date.now()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+                console.log('파일 다운로드 실행됨');
+            } else {
+                console.error('녹화된 데이터가 없음');
+            }
+        }, 1000);
     
         resetUI();
         console.log('녹화 중지됨');
