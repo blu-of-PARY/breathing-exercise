@@ -41,12 +41,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setCanvasSize() {
         const isMobile = window.innerWidth <= 767;
+        const aspectRatio = isMobile ? 9/16 : 16/9;
+
         if (isMobile) {
-            elements.canvas.width = 720;   // 9:16 비율
-            elements.canvas.height = 1280;
+            // 모바일: 세로 화면
+            const height = window.innerHeight;
+            const width = height * (9/16);
+            elements.canvas.width = width;
+            elements.canvas.height = height;
         } else {
-            elements.canvas.width = 1280;  // 16:9 비율
-            elements.canvas.height = 720;
+            // 데스크톱: 가로 화면
+            const width = window.innerWidth;
+            const height = width * (9/16);
+            elements.canvas.width = width;
+            elements.canvas.height = height;
         }
         console.log("Canvas size set to:", elements.canvas.width, "x", elements.canvas.height);
     }
