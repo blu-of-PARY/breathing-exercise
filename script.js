@@ -195,10 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             elements.readyBtn.style.display = 'none';
             elements.exerciseControls.style.display = 'flex';
-            elements.startBtn.style.display = 'block';  // 이 줄 추가
-            elements.pauseBtn.style.display = 'none';   // 이 줄 추가
-            elements.stopBtn.style.display = 'block';   // 이 줄 추가
+            elements.startBtn.style.display = 'block';
+            elements.pauseBtn.style.display = 'none';
+            elements.stopBtn.style.display = 'block';
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
+
+            console.log('Buttons visibility updated'); // 디버깅용 로그 추가
+            
         } catch (err) {
             console.error('Camera initialization error:', err);
             alert('카메라 초기화 중 오류가 발생했습니다: ' + err.message);
