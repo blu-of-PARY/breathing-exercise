@@ -72,9 +72,8 @@ main {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;  /* 비율은 유지하면서 화면을 꽉 채우기 */
     background: #1d1d1d;
-    pointer-events: none; /* 캔버스는 클릭 방지 */
+    pointer-events: none;
 }
 
 #recordingCanvas {
@@ -321,18 +320,17 @@ main {
     }
 }
 
-/* 미디어 쿼리 - 데스크톱 스타일 */
-@media (min-width: 768px) {
-    body {
-        font-size: 18px;
+@media (max-width: 767px) {
+    #webcam,
+    #recordingCanvas {
+        object-fit: contain;  /* 세로 화면에 맞추기 */
     }
-    /* 추가 데스크톱 전용 스타일을 여기에 추가 */
 }
 
-/* 미디어 쿼리 - 모바일 기본 스타일 */
-@media (max-width: 767px) {
-    body {
-        font-size: 16px;
+/* 데스크톱 화면 (768px 이상) */
+@media (min-width: 768px) {
+    #webcam,
+    #recordingCanvas {
+        object-fit: cover;  /* 가로 화면에 맞추기 */
     }
-    /* 모바일 전용 추가 스타일을 여기에 추가 */
 }
