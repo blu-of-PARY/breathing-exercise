@@ -22,7 +22,7 @@
 
 body {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: #000;
+    background-color: #1d1d1d;
     color: #efefef;
 }
 
@@ -63,6 +63,7 @@ main {
     width: 100vw;           /* 변경: 전체 뷰포트 너비 */
     height: 100vh;          /* 변경: 전체 뷰포트 높이 */
     z-index: -1;
+    background: #1d1d1d;  /* 검은 배경 추가 */
 }
 
 #webcam,
@@ -185,7 +186,7 @@ main {
 
 .control-btn.secondary {
     background: #666;
-    color: #fff;
+    color: #efefef;
 }
 
 .control-btn:hover {
@@ -202,7 +203,7 @@ main {
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background: rgba(29, 29, 29, 0.8);
+    background: #1d1d1d(29, 29, 29, 0.8);
     border-radius: 15px;
 }
 
@@ -306,6 +307,64 @@ main {
 
 .modal-btn:hover {
     opacity: 0.9;
+}
+
+
+/* UI 컨테이너 - 반투명 배경 추가 */
+.ui-container {
+    position: relative;
+    z-index: 1;
+    background: #1d1d1d(0, 0, 0, 0.5);  /* 반투명 검은 배경 */
+    padding: 20px;
+    width: 100%;
+    color: #efefef;
+}
+
+/* 모바일 UI */
+@media (max-width: 767px) {
+    .ui-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        padding-bottom: env(safe-area-inset-bottom);  /* iOS 안전영역 대응 */
+    }
+
+    /* 카운트 디스플레이 */
+    .count-display {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #1d1d1d(0, 0, 0, 0.7);
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    /* 상단 phase-indicator */
+    .phase-indicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #1d1d1d(0, 0, 0, 0.7);
+        padding: 10px;
+    }
+}
+
+/* 데스크톱 UI */
+@media (min-width: 768px) {
+    .ui-container {
+        position: absolute;
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+        max-width: 300px;
+        border-radius: 15px;
+    }
+
+    .count-display {
+        margin: 20px 0;
+    }
 }
 
 /* iOS 안전 영역 대응 */

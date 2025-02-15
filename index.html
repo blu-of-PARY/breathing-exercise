@@ -22,71 +22,52 @@
 
         <!-- 메인 콘텐츠 -->
         <main>
-            <!-- 카메라 컨테이너 추가 -->
+            <!-- 카메라 컨테이너 -->
             <div class="camera-container">
                 <video id="webcam" playsinline autoplay muted></video>
                 <canvas id="recordingCanvas"></canvas>
             </div>
-
-            <!-- 설정 모달 추가 -->
-            <div id="settingsModal" class="settings-modal">
-                <div class="modal-content">
-                    <h2>호흡 난이도 설정</h2>
-                    <div class="modal-settings">
-                        <div class="setting-group">
-                            <label for="difficultySelect">난이도 설정</label>
-                            <select id="difficultySelect" class="setting-input">
-                                <option value="beginner">초급 (들이쉬기 5초, 참기 3초)</option>
-                                <option value="intermediate" selected>중급 (들이쉬기 7초, 참기 5초)</option>
-                                <option value="advanced">고급 (랜덤 5~7초, 참기 3~5초)</option>
-                            </select>
-                        </div>
-                        <div class="setting-group">
-                            <label for="cycleCount">반복 횟수</label>
-                            <input type="number" id="cycleCount" class="setting-input" min="1" max="50" value="10">
+        
+            <!-- UI 컨테이너 -->
+            <div class="ui-container">
+                <!-- 진행 단계 표시 영역 -->
+                <div class="phase-indicator">
+                    <div class="phase-name">복식 호흡</div>
+                    <div class="exercise-timer">
+                        <div class="timer-bar">
+                            <div class="timer-progress"></div>
                         </div>
                     </div>
-                    <button id="startWithSettings" class="modal-btn">시작하기</button>
                 </div>
-            </div>
-
-            <!-- 진행 단계 표시 영역 추가 -->
-            <div class="phase-indicator">
-                <div class="phase-name">복식호흡</div>
-                <div class="exercise-timer">
-                    <div class="timer-bar">
-                        <div class="timer-progress"></div>
+        
+                <!-- 중앙 카운트 디스플레이 -->
+                <div class="count-display">
+                    <span id="countNumber">0</span>
+                </div>
+        
+                <!-- 하단 영역 -->
+                <div class="bottom-area">
+                    <!-- 안내 메시지 -->
+                    <div class="instruction-message">
+                        카메라 준비를 위해 '준비 완료' 버튼을 눌러주세요
                     </div>
-                </div>
-            </div>
-
-            <!-- 중앙 카운트 디스플레이 -->
-            <div class="count-display">
-                <span id="countNumber">0</span>
-            </div>
-
-            <!-- 하단 영역 -->
-            <div class="bottom-area">
-                <!-- 안내 메시지 -->
-                <div class="instruction-message">
-                    카메라 준비를 위해 '준비 완료' 버튼을 눌러주세요
-                </div>
-
-                <!-- 컨트롤 영역 -->
-                <div class="controls-wrapper">
-                    <div class="button-container">
-                        <button id="readyBtn" class="control-btn">준비 완료</button>
-                        <div class="exercise-controls">
-                            <button id="startBtn" class="control-btn">시작하기</button>
-                            <button id="pauseBtn" class="control-btn" style="display: none;">일시정지</button>
-                            <button id="stopBtn" class="control-btn secondary">정지</button>
+        
+                    <!-- 컨트롤 영역 -->
+                    <div class="controls-wrapper">
+                        <div class="button-container">
+                            <button id="readyBtn" class="control-btn">준비 완료</button>
+                            <div class="exercise-controls">
+                                <button id="startBtn" class="control-btn">시작하기</button>
+                                <button id="pauseBtn" class="control-btn" style="display: none;">일시정지</button>
+                                <button id="stopBtn" class="control-btn secondary">정지</button>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- 설정 영역 -->
-                    <div class="settings-area">
-                        <div class="cycle-counter">
-                            사이클: <span id="currentCycle">0</span> / <span id="totalCycles">10</span>
+        
+                        <!-- 설정 영역 -->
+                        <div class="settings-area">
+                            <div class="cycle-counter">
+                                사이클: <span id="currentCycle">0</span> / <span id="totalCycles">10</span>
+                            </div>
                         </div>
                     </div>
                 </div>
