@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // MediaRecorder 생성 시 canvasStream 사용
-            mediaRecorder = MediaRecorder(canvasStream, options);
+            mediaRecorder = new MediaRecorder(canvasStream, options);
 
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data && event.data.size > 0) {  // 수정
