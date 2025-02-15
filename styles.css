@@ -63,9 +63,8 @@ main {
     position: relative;
 }
 #webcam {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    position: relative;
+    z-index: 1;  /* 비디오를 뒤로 보내기 위해 낮은 z-index 설정 */
 }
 #recordingCanvas {
     position: absolute;
@@ -73,8 +72,9 @@ main {
     left: 0;
     width: 100%;
     height: 100%;
-    /* 캔버스는 기본적으로 투명하게 두어 웹캠 영상이 보이도록 함 */
     pointer-events: none;
+    z-index: 2;  /* 캔버스가 비디오 위에 오도록 높은 z-index 설정 */
+    background-color: transparent; /* 혹시 배경색 때문에 보이지 않는다면 제거 */
 }
 
 /* 진행 단계 표시 영역 */

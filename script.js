@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.canvas.height = 720;
 
     function drawCompositeFrame() {
+        console.log("drawCompositeFrame 실행");  // 함수 실행 확인용 로그
         ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
         ctx.drawImage(elements.video, 0, 0, elements.canvas.width, elements.canvas.height);
 
