@@ -47,6 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawCompositeFrame() {
         ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
         ctx.drawImage(elements.video, 0, 0, elements.canvas.width, elements.canvas.height);
+
+        // 오버레이 텍스트 추가
+        ctx.font = '48px Arial';
+        ctx.fillStyle = 'yellow';
+        ctx.fillText("단계: " + elements.phaseName.textContent, 20, 60);
+        ctx.fillText("남은 시간: " + elements.countDisplay.textContent, 20, 120);
+
         requestAnimationFrame(drawCompositeFrame);
     }
 
@@ -145,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // MediaRecorder 생성 시 canvasStream 사용
             mediaRecorder = MediaRecorder(canvasStream, options);
-            
+
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data && event.data.size > 0) {  // 수정
                     chunks.push(event.data);
@@ -333,6 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
         chunks.length = 0;  // 청크 배열 초기화 추가
         mediaRecorder.start();
         console.log('녹화 시작됨');
+
+        // 캔버스 업데이트 루프 시작
+        requestAnimationFrame(drawCompositeFrame);
 
         startBreathingCycle();
     }
