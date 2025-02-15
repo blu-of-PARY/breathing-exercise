@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // 오버레이 텍스트 추가
         ctx.font = '48px Arial';
         ctx.fillStyle = 'yellow';
-        ctx.fillText("단계: " + elements.phaseName.textContent, 20, 60);
-        ctx.fillText("남은 시간: " + elements.countDisplay.textContent, 20, 120);
+        ctx.fillText("TEST", 20, 60);
+
 
         requestAnimationFrame(drawCompositeFrame);
     }
