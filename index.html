@@ -75,6 +75,27 @@
         </main>
     </div>
 
+    <div id="settingsModal" class="settings-modal">
+        <div class="modal-content">
+            <h2>호흡 난이도 설정</h2>
+            <div class="modal-settings">
+                <div class="setting-group">
+                    <label for="difficultySelect">난이도 설정</label>
+                    <select id="difficultySelect" class="setting-input">
+                        <option value="beginner">초급</option>
+                        <option value="intermediate" selected>중급</option>
+                        <option value="advanced">고급</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="cycleCount">반복 횟수</label>
+                    <input type="number" id="cycleCount" class="setting-input" min="1" max="50" value="10">
+                </div>
+            </div>
+            <button id="startWithSettings" class="modal-btn">시작하기</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
