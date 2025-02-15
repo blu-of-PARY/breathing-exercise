@@ -41,8 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 캔버스 초기화
     const ctx = elements.canvas.getContext('2d');
-    elements.canvas.width = 1280;
-    elements.canvas.height = 720;
 
     function drawCompositeFrame() {
         console.log("drawCompositeFrame 실행");  // 함수 실행 확인용 로그
@@ -325,6 +323,9 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('카메라가 활성화되지 않았습니다. 먼저 "준비 완료"를 누르세요.');
             return;
         }
+
+        // 시작 시점에 캔버스 크기를 한 번 더 재설정
+        setCanvasSize();
 
         // AudioContext 초기화 (이 부분 추가)
         if (!audioContext) {

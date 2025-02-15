@@ -61,7 +61,7 @@ main {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    padding-top: 56.25%;
     z-index: -1;      /* 다른 UI 뒤로 보내기 */
     overflow: hidden; /* 넘치는 부분은 숨기기 */
 }
@@ -73,8 +73,8 @@ main {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* 화면 꽉 채우기(잘림 발생 가능) */
-    pointer-events: none; /* 캔버스는 UI 상호작용 막기 */
+    object-fit: cover;  /* 비율은 유지하면서 화면을 꽉 채우기 */
+    pointer-events: none; /* 캔버스는 클릭 방지 */
 }
 
 #recordingCanvas {
@@ -319,4 +319,20 @@ main {
         padding-top: env(safe-area-inset-top);
         padding-bottom: env(safe-area-inset-bottom);
     }
+}
+
+/* 미디어 쿼리 - 데스크톱 스타일 */
+@media (min-width: 768px) {
+    body {
+        font-size: 18px;
+    }
+    /* 추가 데스크톱 전용 스타일을 여기에 추가 */
+}
+
+/* 미디어 쿼리 - 모바일 기본 스타일 */
+@media (max-width: 767px) {
+    body {
+        font-size: 16px;
+    }
+    /* 모바일 전용 추가 스타일을 여기에 추가 */
 }
