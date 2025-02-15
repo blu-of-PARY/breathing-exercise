@@ -195,6 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             elements.readyBtn.style.display = 'none';
             elements.exerciseControls.style.display = 'flex';
+            elements.startBtn.style.display = 'block';  // 이 줄 추가
+            elements.pauseBtn.style.display = 'none';   // 이 줄 추가
+            elements.stopBtn.style.display = 'block';   // 이 줄 추가
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
         } catch (err) {
             console.error('Camera initialization error:', err);
