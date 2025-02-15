@@ -36,7 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
         difficultySelect: document.getElementById('difficultySelect'),
         settingsModal: document.getElementById('settingsModal'),
         startWithSettings: document.getElementById('startWithSettings'),
+        canvas: document.getElementById('recordingCanvas')
     };
+
+    // 캔버스 초기화
+    const ctx = elements.canvas.getContext('2d');
+    elements.canvas.width = 1280;
+    elements.canvas.height = 720;
+
+    function drawCompositeFrame() {
+        ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+        ctx.drawImage(elements.video, 0, 0, elements.canvas.width, elements.canvas.height);
+        requestAnimationFrame(drawCompositeFrame);
+    }
 
     elements.readyBtn.style.display = 'block';  // '준비 완료' 버튼 표시
     elements.startBtn.style.display = 'none';   // '시작하기' 버튼 숨김
@@ -108,11 +120,17 @@ document.addEventListener('DOMContentLoaded', () => {
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             console.log('getUserMedia 성공');  // 디버깅용
             elements.video.srcObject = stream;
-
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
-            elements.video.srcObject = stream;    
-
             await elements.video.play();
+
+            // 웹캠 영상이 재생된 후, 캔버스 스트림 생성 (30fps로 캡처)
+            const canvasStream = elements.canvas.captureStream(30);
+
+            // 오디오도 녹화하려면 원래의 stream에서 오디오 트랙을 추출하여 캔버스 스트림에 추가
+            const audioTrack = stream.getAudioTracks()[0];
+            if (audioTrack) {
+                canvasStream.addTrack(audioTrack);
+                console.log("오디오 트랙 추가됨:", audioTrack);
+            }
 
             const options = { 
                 mimeType: 'video/webm; codecs=vp8',
@@ -125,7 +143,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 options.mimeType = 'video/mp4';
             }
 
-            mediaRecorder = new MediaRecorder(stream, options);
+            // MediaRecorder 생성 시 canvasStream 사용
+            mediaRecorder = MediaRecorder(canvasStream, options);
+            
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data && event.data.size > 0) {  // 수정
                     chunks.push(event.data);
