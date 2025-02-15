@@ -114,68 +114,64 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     async function initCamera() {
-        console.log('initCamera 함수 시작');  // 디버깅용
         try {
-            const constraints = {
-                video: {
-                    facingMode: 'user'
-                },
-                audio: true,
-            };
-
+            console.log('initCamera 함수 시작');  // 디버깅용
+    
             console.log('getUserMedia 시도');  // 디버깅용
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
             console.log('getUserMedia 성공');  // 디버깅용
             elements.video.srcObject = stream;
             await elements.video.play();
-
-            // 동적으로 캔버스 크기 설정
-            elements.video.addEventListener('loadedmetadata', () => {
-                // 비디오의 실제 크기로 캔버스 설정
+    
+            // 비디오 메타데이터가 로드되면 캔버스 크기를 설정
+            function setCanvasSize() {
                 elements.canvas.width = elements.video.videoWidth;
                 elements.canvas.height = elements.video.videoHeight;
-                console.log('videoWidth:', elements.video.videoWidth, 'videoHeight:', elements.video.videoHeight);
+                console.log("캔버스 크기 재설정:", elements.canvas.width, elements.canvas.height);
+            }
+            elements.video.addEventListener('loadedmetadata', setCanvasSize);
+    
+            // 모바일의 경우 회전할 때 캔버스 크기를 재설정
+            window.addEventListener('orientationchange', () => {
+                setTimeout(setCanvasSize, 500);
             });
-            
+    
             // 웹캠 영상이 재생된 후, 캔버스 스트림 생성 (30fps로 캡처)
             const canvasStream = elements.canvas.captureStream(30);
-
+    
             // 오디오도 녹화하려면 원래의 stream에서 오디오 트랙을 추출하여 캔버스 스트림에 추가
             const audioTrack = stream.getAudioTracks()[0];
             if (audioTrack) {
                 canvasStream.addTrack(audioTrack);
                 console.log("오디오 트랙 추가됨:", audioTrack);
             }
-
+    
             const options = { 
                 mimeType: 'video/webm; codecs=vp8',
-                videoBitsPerSecond: 2500000,  // 추가
-                timeslice: 1000  // 추가
+                videoBitsPerSecond: 2500000,
+                timeslice: 1000
             };
-
+    
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 console.warn(`MIME 타입 ${options.mimeType}이 지원되지 않습니다. 대체 타입 사용.`);
                 options.mimeType = 'video/mp4';
             }
-
+    
             // MediaRecorder 생성 시 canvasStream 사용
             mediaRecorder = new MediaRecorder(canvasStream, options);
-
+    
             mediaRecorder.ondataavailable = (event) => {
-                if (event.data && event.data.size > 0) {  // 수정
+                if (event.data && event.data.size > 0) {
                     chunks.push(event.data);
-                    console.log('데이터 청크 추가됨:', event.data.size); // 디버깅용
+                    console.log('데이터 청크 추가됨:', event.data.size);
                 }
             };
-
+    
             mediaRecorder.onstop = () => {
-                // 약간의 지연을 주어 마지막 청크까지 모두 수집
                 setTimeout(() => {
                     if (chunks.length > 0) {
                         const blob = new Blob(chunks, { type: options.mimeType });
-                        const fileName = `recorded-video-${new Date()
-                            .toISOString()
-                            .replace(/[:.]/g, '-')}.webm`;
+                        const fileName = `recorded-video-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
                         const a = document.createElement('a');
                         a.style.display = 'none';
                         a.href = URL.createObjectURL(blob);
@@ -183,16 +179,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
-                        URL.revokeObjectURL(a.href);  // 추가
+                        URL.revokeObjectURL(a.href);
                     }
                 }, 500);
             };
-
+    
             // 버튼 상태 변경
-            elements.readyBtn.style.display = 'none';  // '준비 완료' 버튼 숨기기
-            elements.startBtn.style.display = 'block'; // '시작하기' 버튼 표시
-            elements.stopBtn.style.display = 'block';  // '정지' 버튼 표시
-
+            elements.readyBtn.style.display = 'none';
+            elements.startBtn.style.display = 'block';
+            elements.stopBtn.style.display = 'block';
+    
             elements.instruction.textContent = '자세를 잡고 호흡 준비를 해 주세요.';
         } catch (err) {
             console.error('Camera initialization error:', err);
